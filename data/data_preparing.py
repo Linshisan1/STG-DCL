@@ -5,8 +5,7 @@ import os
 import copy
 import torch.nn.functional as F
 import stanza
-# 初始化 Stanza 管道（建议只初始化一次，可放在全局变量中）
-# 如果需要下载模型请先执行：stanza.download('en')
+
 #nlp = stanza.Pipeline('en', processors='tokenize,mwt,pos,lemma,depparse', tokenize_no_ssplit=True)
 
 class Instance(object):
@@ -188,12 +187,11 @@ class DataIterator(object):
         tagging_matrices = []
         tokenized = []
 
-        token_classes_list = []   # store each inst's 0..4
+        token_classes_list = []   
         postag_list = []
         head_list = []
         deprel_list = []
 
-        # [NEW] 用于存放本batch里每个句子的 triplets_in_spans
         triplets_in_spans_list = []  # [NEW]
 
         start_idx = index*self.args.batch_size
@@ -238,28 +236,6 @@ class DataIterator(object):
 
 
 
-# 删除 / 注释旧对比学习：
-#
-# 不再保留 get_cl_mask() 函数和 self.cl_mask。
-# 同时在 DataIterator 不再返回 cl_masks。
-# 新增 self.postag, self.head, self.deprel：
-#
-# 在 __init__() 里直接取 single_sentence_pack['postag'], 'head', 'deprel'.
-# 这样后续在 trainer.py 就能使用这些句法信息进行“SSCL”之类的对比。
-# 其余逻辑（word_spans, triplets_in_spans, tagging_matrix 等）依旧保留，用于BIO解析 / 网格标注 / token-level labeling。
-#
-# 在 DataIterator.get_batch() 中，不再返回 cl_masks。增加 postag, head, deprel，以便 trainer.py 能取到这些字段做依存树对比学习（如果你想在 trainer 里构建 pairing）。
-#
-# 如果你想只在 Instance 就构建 pairing，也可以，但通常在 trainer 里构造embedding后再 pairing pull/push 也行。这里我仅给你保留 postag, head, deprel → 你就能看在 trainer 里 get_batch(...) 解析它们了。
-#
-# 删除：旧 get_cl_mask() 和 self.cl_mask（含 cl_masks）部分。
-# 新增：
-# self.postag = single_sentence_pack.get('postag', [])
-# self.head = single_sentence_pack.get('head', [])
-# self.deprel = single_sentence_pack.get('deprel', [])
-# 并在 DataIterator.get_batch() 返回 postag_list, head_list, deprel_list → 这样下游 trainer.py 能拿到依存句法与词性信息以进行 SSCL 对比学习。
-# 保留：
-# word_spans, tagging_matrix, token_classes → ASTE 原功能。
 if __name__ == "__main__":
 
     import sys
@@ -272,8 +248,7 @@ if __name__ == "__main__":
     
     # 获取上一级目录
     parent_dir = os.path.dirname(current_dir)
-    
-    # 将上一级目录添加到sys.path
+
     sys.path.append(parent_dir)
     from utils.data_utils import load_data_instances
 
@@ -284,13 +259,12 @@ if __name__ == "__main__":
     # test_sentence_packs = json.load(open(os.path.abspath(args.prefix + args.data_version + '/' + args.dataset + '/test.json')))
 
 
-    #加载预训练字典和分词方法
+
     tokenizer = RobertaTokenizer.from_pretrained("roberta-base",
-        cache_dir="../modules/models/",  # 将数据保存到的本地位置，使用cache_dir 可以指定文件下载位置
-        force_download=False,  # 是否强制下载
+        cache_dir="../modules/models/",  
+        force_download=False,  
     )
 
-    # 创建一个TensorBoard写入器
     torch.cuda.set_device(1)
 
     parser = argparse.ArgumentParser()
