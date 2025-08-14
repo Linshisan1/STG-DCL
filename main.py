@@ -126,8 +126,8 @@ if __name__ == '__main__':
 
     seed1 = random.randint(0, 2**32 - 1)
     seed2 = 999
-    print(f"🌱 当前自动生成的随机种子是: {seed1}")
-    seed_torch(1200931)
+    print(当前自动生成的随机种子是: {seed1}")
+    seed_torch(seed1)
 
 
     # ======= 5) Load Dataset ==========================
@@ -179,7 +179,6 @@ if __name__ == '__main__':
         {'params': model.cls_linear1.parameters(), 'lr':1e-4},
     ], lr=1e-4)
 
-    # 学习率调度 => milestones => [10,20,30,40], gamma=0.5 ...
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
         optimizer,
         milestones=[150, 250, 350, 450, 500],
