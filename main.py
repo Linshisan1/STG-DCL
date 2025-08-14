@@ -21,7 +21,7 @@ from tools.trainer import Trainer
 
 
 if __name__ == '__main__':
-    # 如果有多块 GPU，可设置 device id
+   
     torch.cuda.set_device(0)
 
     parser = argparse.ArgumentParser()
@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     args = parser.parse_known_args()[0]
 
-    # 如果未指定日志文件 => 自动生成
+ 
     if args.log_path is None:
         args.log_path = 'log_{}_{}_{}.log'.format(
             args.data_version,
@@ -91,7 +91,6 @@ if __name__ == '__main__':
             datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         )
 
-    # 初始化 tokenizer
     # tokenizer = RobertaTokenizer.from_pretrained(
     #     args.model_name_or_path,
     #     cache_dir=args.model_cache_dir,
@@ -107,10 +106,10 @@ if __name__ == '__main__':
         force_download=False,
         lowercase=True
     )
-    # 初始化日志
+  
     logging = Logging(file_name=args.log_path).logging
 
-    # 固定随机种子 => 确保可复现
+    
     def seed_torch(seed):
 
         random.seed(seed)
@@ -166,7 +165,6 @@ if __name__ == '__main__':
     weight_bin= torch.tensor([1.0,2.0]).float().to(args.device)
     f_loss_bin= FocalLoss(weight_bin, ignore_index=-1)
 
-    # 两个Loss => (f_loss, f_loss1)
     criterion = (f_loss_mc, f_loss_bin)
 
     # Adam =>
@@ -205,7 +203,7 @@ if __name__ == '__main__':
     logging(f"""
     ========= - * - =========
     date: {datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}
-    seed:{1200931}
+    seed:{seed1}
     dataset: {args.data_version}/{args.dataset}
     beta_1: {beta_1}
     beta_2: {beta_2}
